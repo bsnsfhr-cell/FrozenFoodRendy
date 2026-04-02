@@ -78,6 +78,7 @@
         .category-chip {
             white-space: nowrap;
             transition: all 0.3s;
+            cursor: pointer;
         }
 
         .category-chip.active {
@@ -87,6 +88,19 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Search Bar Animation */
+        #search-container {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        #search-container.active {
+            max-height: 100px;
+            opacity: 1;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -94,21 +108,38 @@
     <div class="app-container">
         
         <!-- App Header -->
-        <header class="glass-header sticky top-0 z-40 px-6 py-4 flex justify-between items-center border-b border-gray-100">
-            <div>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selamat Datang</p>
-                <h1 class="text-xl font-extrabold text-green-900">FROZEN<span class="text-green-500">FOOD</span></h1>
+        <header class="glass-header sticky top-0 z-40 px-6 py-4 border-b border-gray-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selamat Datang</p>
+                    <h1 class="text-xl font-extrabold text-green-900">FROZEN<span class="text-green-500">FOOD</span></h1>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="toggleSearch()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                        <i class="fas fa-shopping-bag"></i>
+                    </button>
+                </div>
             </div>
-            <button class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                <i class="fas fa-shopping-bag"></i>
-            </button>
+
+            <!-- Search Input Field -->
+            <div id="search-container">
+                <div class="relative">
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="Cari sosis, nugget, bakso..." class="w-full p-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-green-500 text-sm font-medium">
+                    <button onclick="clearSearch()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
         </header>
 
         <!-- Main Content -->
         <main class="flex-1 pb-10">
             
             <!-- Hero Promo -->
-            <div class="px-6 mt-6">
+            <div class="px-6 mt-6" id="hero-area">
                 <div class="btn-primary rounded-[32px] p-6 text-white relative overflow-hidden h-44 flex items-center">
                     <div class="relative z-10 w-2/3">
                         <h2 class="text-2xl font-bold leading-tight mb-2">Promo Spesial Hari Ini!</h2>
@@ -122,16 +153,26 @@
             </div>
 
             <!-- Categories -->
-            <div class="px-6 mt-8 overflow-x-auto no-scrollbar flex space-x-3">
-                <div class="category-chip active px-6 py-3 rounded-2xl text-sm font-bold border border-gray-100 shadow-sm">Semua</div>
-                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Sosis</div>
-                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Nugget</div>
-                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Bakso</div>
+            <div class="px-6 mt-8 overflow-x-auto no-scrollbar flex space-x-3" id="category-list">
+                <div onclick="filterCategory('Semua')" class="category-chip active px-6 py-3 rounded-2xl text-sm font-bold border border-gray-100 shadow-sm">Semua</div>
+                <div onclick="filterCategory('Sosis')" class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Sosis</div>
+                <div onclick="filterCategory('Nugget')" class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Nugget</div>
+                <div onclick="filterCategory('Bakso')" class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Bakso</div>
+                <div onclick="filterCategory('Lainnya')" class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Lainnya</div>
             </div>
 
             <!-- Product Grid -->
             <div class="px-6 mt-8 grid grid-cols-2 gap-4" id="product-list">
                 <!-- Data via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden px-6 py-20 text-center">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search text-2xl text-gray-300"></i>
+                </div>
+                <p class="text-gray-500 font-bold">Produk tidak ditemukan</p>
+                <p class="text-xs text-gray-400 mt-1">Coba kata kunci lain</p>
             </div>
 
             <!-- Footer Info Area -->
@@ -178,7 +219,7 @@
                 <i class="fas fa-home text-xl"></i>
                 <span class="text-[10px] font-bold mt-1">Beranda</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400">
+            <button onclick="toggleSearch()" class="flex flex-col items-center text-gray-400">
                 <i class="fas fa-search text-xl"></i>
                 <span class="text-[10px] font-bold mt-1">Cari</span>
             </button>
@@ -202,7 +243,7 @@
             <div class="flex items-start justify-between mb-6">
                 <div>
                     <h2 id="p-name" class="text-2xl font-extrabold text-gray-900 leading-tight"></h2>
-                    <p class="text-gray-400 text-sm mt-1">Kemasan Plastik 500gr • Higienis</p>
+                    <p id="p-desc" class="text-gray-400 text-sm mt-1"></p>
                 </div>
                 <div class="bg-green-50 text-green-700 font-bold px-3 py-1 rounded-lg" id="p-price-tag"></div>
             </div>
@@ -235,47 +276,124 @@
 
     <script>
         const products = [
-            { id: 1, name: "Sosis Okey", price: 21000, img: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=400" },
-            { id: 2, name: "Sosis Asimo", price: 20000, img: "https://images.unsplash.com/photo-1541048611055-0939d136eeec?q=80&w=400" },
-            { id: 3, name: "Sosis Vigo", price: 17000, img: "https://images.unsplash.com/photo-1513442542250-854d436a73f2?q=80&w=400" },
-            { id: 4, name: "Nugget Okey", price: 21000, img: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400" },
-            { id: 5, name: "Nugget Asimo", price: 18000, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400" },
-            { id: 6, name: "Bakso Ayam", price: 25000, img: "https://images.unsplash.com/photo-1534939561126-755ecf15a19c?q=80&w=400" }
+            // Menu Lama
+            { id: 1, name: "Sosis Okey", price: 21000, cat: "Sosis", desc: "Isi 500gr", img: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=400" },
+            { id: 2, name: "Sosis Asimo", price: 20000, cat: "Sosis", desc: "Isi 500gr", img: "https://images.unsplash.com/photo-1541048611055-0939d136eeec?q=80&w=400" },
+            { id: 3, name: "Sosis Vigo", price: 17000, cat: "Sosis", desc: "Isi 500gr", img: "https://images.unsplash.com/photo-1513442542250-854d436a73f2?q=80&w=400" },
+            { id: 4, name: "Nugget Okey", price: 21000, cat: "Nugget", desc: "Stik/Bulat 500gr", img: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400" },
+            { id: 5, name: "Nugget Asimo", price: 18000, cat: "Nugget", desc: "Isi 500gr", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400" },
+            { id: 6, name: "Bakso Ayam", price: 25000, cat: "Bakso", desc: "Isi 500gr", img: "https://images.unsplash.com/photo-1534939561126-755ecf15a19c?q=80&w=400" },
+            
+            // Menu Baru
+            { id: 7, name: "Dimsum Goreng", price: 15000, cat: "Lainnya", desc: "Isi 25 Tusuk", img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?q=80&w=400" },
+            { id: 8, name: "Nugget Lidah", price: 7000, cat: "Nugget", desc: "Isi 20 pcs", img: "https://images.unsplash.com/photo-1541529086526-db283c563270?q=80&w=400" },
+            { id: 9, name: "Bakso Cucuk", price: 14000, cat: "Bakso", desc: "Isi 24 pcs", img: "https://images.unsplash.com/photo-1582650809083-09419139589d?q=80&w=400" },
+            { id: 10, name: "Bakso Ikan Bulat", price: 7000, cat: "Bakso", desc: "Isi 20 pcs", img: "https://images.unsplash.com/photo-1523905330026-b8bd1f5f320e?q=80&w=400" },
+            { id: 11, name: "Bakso Ikan Bunga", price: 8000, cat: "Bakso", desc: "Isi 20 pcs", img: "https://images.unsplash.com/photo-1603048297172-c92544798d5e?q=80&w=400" },
+            { id: 12, name: "Sempol Polos", price: 14000, cat: "Lainnya", desc: "Isi 25 tusuk", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400" },
+            { id: 13, name: "Sempol Panir", price: 15000, cat: "Lainnya", desc: "Isi 25 tusuk", img: "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=400" },
+            { id: 14, name: "Pempek Goreng", price: 14000, cat: "Lainnya", desc: "Isi 24 pcs", img: "https://images.unsplash.com/photo-1626509653295-46747ca76800?q=80&w=400" },
+            { id: 15, name: "Tahu Bakso", price: 7500, cat: "Lainnya", desc: "Isi 12 pcs", img: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?q=80&w=400" }
         ];
 
         let activeProduct = null;
         let qty = 1;
+        let currentFilter = 'Semua';
+        let searchQuery = '';
 
         function formatIDR(val) {
-            return "Rp " + val.toLocaleString('id-ID');
+            return "Rp " + val.toLocaleString('id-ID').replace(',', '.');
         }
 
-        function initApp() {
+        // Fungsi Render Utama
+        function renderApp() {
             const list = document.getElementById('product-list');
-            list.innerHTML = products.map(p => `
-                <div class="card-timbul overflow-hidden relative" onclick="openProduct(${p.id})">
-                    <div class="h-40 relative">
-                        <img src="${p.img}" class="w-full h-full object-cover">
-                        <div class="absolute top-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black text-green-700 uppercase">Baru</div>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-sm font-bold text-gray-800 mb-1 leading-tight">${p.name}</h3>
-                        <p class="text-[10px] text-gray-400 font-medium mb-3 tracking-wide">NETTO 500G</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-extrabold text-green-600">${formatIDR(p.price)}</span>
-                            <div class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-xs shadow-md shadow-green-200">
-                                <i class="fas fa-cart-plus"></i>
+            const empty = document.getElementById('empty-state');
+            
+            // Filter berdasarkan kategori DAN pencarian
+            const filtered = products.filter(p => {
+                const matchCat = currentFilter === 'Semua' || p.cat === currentFilter;
+                const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = "";
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                list.innerHTML = filtered.map(p => `
+                    <div class="card-timbul overflow-hidden relative animate-in fade-in zoom-in duration-300" onclick="openProduct(${p.id})">
+                        <div class="h-40 relative">
+                            <img src="${p.img}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-sm font-bold text-gray-800 mb-1 leading-tight h-10 overflow-hidden">${p.name}</h3>
+                            <p class="text-[10px] text-gray-400 font-medium mb-3 tracking-wide uppercase">${p.desc}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-extrabold text-green-600">${formatIDR(p.price)}</span>
+                                <div class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-xs shadow-md shadow-green-200">
+                                    <i class="fas fa-plus"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
+        // Fungsi Cari (Search)
+        function toggleSearch() {
+            const container = document.getElementById('search-container');
+            const input = document.getElementById('search-input');
+            const hero = document.getElementById('hero-area');
+            
+            container.classList.toggle('active');
+            if (container.classList.contains('active')) {
+                input.focus();
+                hero.style.display = 'none'; // Sembunyikan promo saat cari
+            } else {
+                clearSearch();
+                hero.style.display = 'block';
+            }
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value;
+            renderApp();
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            renderApp();
+        }
+
+        // Fungsi Kategori
+        function filterCategory(cat) {
+            currentFilter = cat;
+            
+            // Update UI chip
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                if (chip.innerText === cat) {
+                    chip.classList.add('active', 'font-bold');
+                    chip.classList.remove('bg-white', 'text-gray-500', 'font-medium');
+                } else {
+                    chip.classList.remove('active', 'font-bold');
+                    chip.classList.add('bg-white', 'text-gray-500', 'font-medium');
+                }
+            });
+            
+            renderApp();
+        }
+
+        // Fungsi Detail & Order
         function openProduct(id) {
             activeProduct = products.find(p => p.id === id);
             qty = 1;
             document.getElementById('p-name').innerText = activeProduct.name;
+            document.getElementById('p-desc').innerText = activeProduct.desc + " • Segar & Higienis";
             document.getElementById('p-price-tag').innerText = formatIDR(activeProduct.price);
             document.getElementById('p-qty').innerText = qty;
             document.getElementById('p-note').value = "";
@@ -319,14 +437,13 @@
                          `📝 *Catatan:* ${note || '-'}%0A` +
                          `💰 *Total:* ${formatIDR(total)}%0A` +
                          `----------------------------%0A` +
-                         `_Dikirim dari Website Mobile_`;
+                         `_Pesan via Website Digital_`;
             
             window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank');
         }
 
-        window.onload = initApp;
+        window.onload = renderApp;
     </script>
 </body>
 </html>
-
 
