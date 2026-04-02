@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FrozenFood App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --app-green: #166534;
+            --app-light-green: #22c55e;
+            --app-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #e2e8f0; 
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: var(--app-bg);
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .card-timbul {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease;
+        }
+
+        .card-timbul:active {
+            transform: scale(0.97);
+        }
+
+        .bottom-nav {
+            max-width: 480px;
+            margin: 0 auto;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--app-light-green), var(--app-green));
+            box-shadow: 0 10px 20px rgba(22, 101, 52, 0.2);
+        }
+
+        #detail-panel {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(100%);
+            z-index: 100;
+        }
+
+        #detail-panel.active {
+            transform: translateY(0);
+        }
+
+        .category-chip {
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .category-chip.active {
+            background-color: var(--app-green);
+            color: white;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- App Header -->
+        <header class="glass-header sticky top-0 z-40 px-6 py-4 flex justify-between items-center border-b border-gray-100">
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selamat Datang</p>
+                <h1 class="text-xl font-extrabold text-green-900">FROZEN<span class="text-green-500">FOOD</span></h1>
+            </div>
+            <button class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                <i class="fas fa-shopping-bag"></i>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 pb-10">
+            
+            <!-- Hero Promo -->
+            <div class="px-6 mt-6">
+                <div class="btn-primary rounded-[32px] p-6 text-white relative overflow-hidden h-44 flex items-center">
+                    <div class="relative z-10 w-2/3">
+                        <h2 class="text-2xl font-bold leading-tight mb-2">Promo Spesial Hari Ini!</h2>
+                        <p class="text-sm opacity-90 mb-4">Dapatkan diskon untuk stok dapur Anda.</p>
+                        <button class="bg-white text-green-700 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider">Klaim Sekarang</button>
+                    </div>
+                    <div class="absolute right-[-20px] bottom-[-20px] opacity-20 transform rotate-12">
+                        <i class="fas fa-ice-cream text-[150px]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="px-6 mt-8 overflow-x-auto no-scrollbar flex space-x-3">
+                <div class="category-chip active px-6 py-3 rounded-2xl text-sm font-bold border border-gray-100 shadow-sm">Semua</div>
+                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Sosis</div>
+                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Nugget</div>
+                <div class="category-chip bg-white px-6 py-3 rounded-2xl text-sm font-medium border border-gray-100 text-gray-500 shadow-sm">Bakso</div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="px-6 mt-8 grid grid-cols-2 gap-4" id="product-list">
+                <!-- Data via JS -->
+            </div>
+
+            <!-- Footer Info Area -->
+            <div class="px-6 mt-12 pb-24">
+                <div class="card-timbul p-6 space-y-6">
+                    <!-- Alamat -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-green-600 mr-2"></i> Lokasi Toko
+                        </h3>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            Jl. Raya Frozen Food No. 123, <br>
+                            Kecamatan Makmur Jaya, <br>
+                            Kota Jakarta Selatan, 12345
+                        </p>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 mb-3">Ikuti Kami</h3>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center hover:bg-pink-100 transition shadow-sm">
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center hover:bg-black transition shadow-sm">
+                                <i class="fab fa-tiktok text-lg"></i>
+                            </a>
+                            <a href="https://wa.me/62895700268700" target="_blank" class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition shadow-sm">
+                                <i class="fab fa-whatsapp text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-50">
+                        <p class="text-[10px] text-gray-400 text-center uppercase tracking-widest font-bold">© 2024 FrozenFood Digital Store</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 w-full glass-header bottom-nav px-8 py-4 flex justify-between items-center z-50">
+            <button onclick="window.location.reload()" class="flex flex-col items-center text-green-600">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-[10px] font-bold mt-1">Beranda</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-search text-xl"></i>
+                <span class="text-[10px] font-bold mt-1">Cari</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-history text-xl"></i>
+                <span class="text-[10px] font-bold mt-1">Riwayat</span>
+            </button>
+            <button class="flex flex-col items-center text-gray-400">
+                <i class="fas fa-user text-xl"></i>
+                <span class="text-[10px] font-bold mt-1">Profil</span>
+            </button>
+        </nav>
+
+        <!-- Background Overlay -->
+        <div id="overlay" onclick="closeDetail()" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[90] transition-opacity duration-300 opacity-0"></div>
+
+        <!-- Detail Order Action Sheet -->
+        <div id="detail-panel" class="fixed bottom-0 w-full max-w-[480px] bg-white rounded-t-[40px] shadow-2xl p-8 pb-10">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h2 id="p-name" class="text-2xl font-extrabold text-gray-900 leading-tight"></h2>
+                    <p class="text-gray-400 text-sm mt-1">Kemasan Plastik 500gr • Higienis</p>
+                </div>
+                <div class="bg-green-50 text-green-700 font-bold px-3 py-1 rounded-lg" id="p-price-tag"></div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-3xl">
+                    <span class="font-bold text-gray-700">Jumlah Pesanan</span>
+                    <div class="flex items-center space-x-5">
+                        <button onclick="adjQty(-1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-green-600 font-bold border border-gray-100">-</button>
+                        <span id="p-qty" class="text-xl font-extrabold">1</span>
+                        <button onclick="adjQty(1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-green-600 font-bold border border-gray-100">+</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-2">Catatan Pesanan</label>
+                    <textarea id="p-note" rows="2" class="w-full mt-2 p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 outline-none text-sm font-medium" placeholder="Contoh: Titip ke satpam ya.."></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="checkout()" class="w-full btn-primary text-white py-5 rounded-[24px] font-extrabold text-lg flex items-center justify-center space-x-3 shadow-xl active:scale-95 transition-all">
+                        <span>Pesan via WhatsApp</span>
+                        <i class="fab fa-whatsapp text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, name: "Sosis Okey", price: 21000, img: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=400" },
+            { id: 2, name: "Sosis Asimo", price: 20000, img: "https://images.unsplash.com/photo-1541048611055-0939d136eeec?q=80&w=400" },
+            { id: 3, name: "Sosis Vigo", price: 17000, img: "https://images.unsplash.com/photo-1513442542250-854d436a73f2?q=80&w=400" },
+            { id: 4, name: "Nugget Okey", price: 21000, img: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400" },
+            { id: 5, name: "Nugget Asimo", price: 18000, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400" },
+            { id: 6, name: "Bakso Ayam", price: 25000, img: "https://images.unsplash.com/photo-1534939561126-755ecf15a19c?q=80&w=400" }
+        ];
+
+        let activeProduct = null;
+        let qty = 1;
+
+        function formatIDR(val) {
+            return "Rp " + val.toLocaleString('id-ID');
+        }
+
+        function initApp() {
+            const list = document.getElementById('product-list');
+            list.innerHTML = products.map(p => `
+                <div class="card-timbul overflow-hidden relative" onclick="openProduct(${p.id})">
+                    <div class="h-40 relative">
+                        <img src="${p.img}" class="w-full h-full object-cover">
+                        <div class="absolute top-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black text-green-700 uppercase">Baru</div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-1 leading-tight">${p.name}</h3>
+                        <p class="text-[10px] text-gray-400 font-medium mb-3 tracking-wide">NETTO 500G</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-extrabold text-green-600">${formatIDR(p.price)}</span>
+                            <div class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-xs shadow-md shadow-green-200">
+                                <i class="fas fa-cart-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openProduct(id) {
+            activeProduct = products.find(p => p.id === id);
+            qty = 1;
+            document.getElementById('p-name').innerText = activeProduct.name;
+            document.getElementById('p-price-tag').innerText = formatIDR(activeProduct.price);
+            document.getElementById('p-qty').innerText = qty;
+            document.getElementById('p-note').value = "";
+            
+            const overlay = document.getElementById('overlay');
+            const panel = document.getElementById('detail-panel');
+            
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.style.opacity = "1";
+                panel.classList.add('active');
+            }, 10);
+        }
+
+        function closeDetail() {
+            const overlay = document.getElementById('overlay');
+            const panel = document.getElementById('detail-panel');
+            
+            overlay.style.opacity = "0";
+            panel.classList.remove('active');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function adjQty(val) {
+            qty += val;
+            if (qty < 1) qty = 1;
+            document.getElementById('p-qty').innerText = qty;
+        }
+
+        function checkout() {
+            const note = document.getElementById('p-note').value;
+            const total = qty * activeProduct.price;
+            const waNumber = "62895700268700";
+            
+            const text = `*PESANAN FROZEN FOOD*%0A` +
+                         `----------------------------%0A` +
+                         `✅ *Produk:* ${activeProduct.name}%0A` +
+                         `🔢 *Jumlah:* ${qty} Pack%0A` +
+                         `📝 *Catatan:* ${note || '-'}%0A` +
+                         `💰 *Total:* ${formatIDR(total)}%0A` +
+                         `----------------------------%0A` +
+                         `_Dikirim dari Website Mobile_`;
+            
+            window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank');
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
+
+
